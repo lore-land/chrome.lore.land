@@ -1,0 +1,1 @@
+export let _____log = console.log;

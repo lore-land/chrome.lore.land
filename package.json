@@ -1,0 +1,26 @@
+{
+  "name": "boon-land-chrome_extension",
+  "version": "0.0.1",
+  "private": true,
+  "author": {
+    "email": "sam@spwashi.com",
+    "name": "Sam Washington"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.18.2",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.7.1",
+    "html-webpack-plugin": "^5.5.0",
+    "sass": "^1.52.1",
+    "sass-loader": "^13.0.0",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.72.1",
+    "webpack-cli": "^4.9.2"
+  },
+  "scripts": {
+    "build": "webpack -c webpack.config.js"
+  },
+  "dependencies": {
+    "babel-loader": "^8.2.5"
+  }
+}
