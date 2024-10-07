@@ -1,80 +1,79 @@
 {
-  "name": "lore.land",
+  "name": "Lore.land",
   "description": "A companion app for interactive story navigation",
   "version": "1.1",
-  "manifest_version": 4,
+  "manifest_version": 3,
   "background": {
-    "service_worker": "js/background.js",
-    "type": "module"
+    "service_worker": "js/background.js"
   },
   "permissions": [
-    "desktopCapture",
-    "storage",
-    "tabs",
     "activeTab",
-    "scripting"
+    "tabs",
+    "storage",
+    "scripting",
+    "desktopCapture"
   ],
   "commands": {
     "yank_chapter": {
       "suggested_key": {
-        "default": "Ctrl+y",
-        "mac": "Command+y"
+        "default": "Ctrl+Y",
+        "mac": "Command+Y"
       },
       "description": "Yank the current chapter's text"
     },
     "navigate_left_section": {
       "suggested_key": {
-        "default": "Ctrl+h",
-        "mac": "Command+h"
+        "default": "Ctrl+H",
+        "mac": "Command+H"
       },
       "description": "Navigate to the previous section"
     },
     "navigate_right_section": {
       "suggested_key": {
-        "default": "Ctrl+l",
-        "mac": "Command+l"
+        "default": "Ctrl+L",
+        "mac": "Command+L"
       },
       "description": "Navigate to the next section"
     },
     "navigate_up_chapter": {
       "suggested_key": {
-        "default": "Ctrl+k",
-        "mac": "Command+k"
+        "default": "Ctrl+K",
+        "mac": "Command+K"
       },
       "description": "Navigate to the previous chapter"
     },
     "navigate_down_chapter": {
       "suggested_key": {
-        "default": "Ctrl+j",
-        "mac": "Command+j"
+        "default": "Ctrl+J",
+        "mac": "Command+J"
       },
       "description": "Navigate to the next chapter"
     },
     "open_character_profile": {
       "suggested_key": {
-        "default": "Ctrl+o",
-        "mac": "Command+o"
+        "default": "Ctrl+O",
+        "mac": "Command+O"
       },
       "description": "Open the current character's profile"
     },
     "open_timeline": {
       "suggested_key": {
-        "default": "Ctrl+t",
-        "mac": "Command+t"
+        "default": "Ctrl+T",
+        "mac": "Command+T"
       },
       "description": "Open the story timeline"
     },
     "bookmark_location": {
       "suggested_key": {
-        "default": "Ctrl+b",
-        "mac": "Command+b"
+        "default": "Ctrl+B",
+        "mac": "Command+B"
       },
       "description": "Bookmark the current location in the story"
     },
     "jump_to_bookmark": {
       "suggested_key": {
-        "default": "Ctrl+g",
-        "mac": "Command+g"
+        "default": "Ctrl+G",
+        "mac": "Command+G"
       },
       "description": "Jump to the previously saved bookmark"
     },
@@ -87,46 +86,38 @@
     },
     "execute_primary_action": {
       "suggested_key": {
-        "default": "Ctrl+p",
-        "mac": "Command+p"
+        "default": "Ctrl+P",
+        "mac": "Command+P"
       },
       "description": "Perform the primary action"
     }
   },
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "js/content.js"
-      ]
+      "matches": ["<all_urls>"],
+      "js": ["js/content.js"]
     }
   ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "/images/get_started16.png",
-      "32": "/images/get_started32.png",
-      "48": "/images/get_started48.png",
-      "128": "/images/get_started128.png"
+      "16": "images/get_started16.png",
+      "32": "images/get_started32.png",
+      "48": "images/get_started48.png",
+      "128": "images/get_started128.png"
     }
   },
   "icons": {
-    "16": "/images/get_started16.png",
-    "32": "/images/get_started32.png",
-    "48": "/images/get_started48.png",
-    "128": "/images/get_started128.png"
+    "16": "images/get_started16.png",
+    "32": "images/get_started32.png",
+    "48": "images/get_started48.png",
+    "128": "images/get_started128.png"
   },
   "options_page": "options.html",
   "web_accessible_resources": [
     {
-      "resources": [
-        "js/background.js.map"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
+      "resources": ["js/background.js.map"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

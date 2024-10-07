@@ -1,0 +1,31 @@
+/* options.css - Styles for the options page */
+
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+h1 {
+    font-size: 1.5em;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+button {
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+#thoughts-container {
+    margin-top: 20px;
+}
+
+#thoughts-container p {
+    margin: 5px 0;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
