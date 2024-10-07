@@ -1,93 +1,116 @@
-import {screenRecordingVideoId, screenRecordingVideoLinkId, screenshotCanvasId, screenshotImageId, textYankContainerId, widgetContainerId} from "../constants.mjs";
+import { screenRecordingVideoId, screenRecordingVideoLinkId, screenshotCanvasId, screenshotImageId, textYankContainerId, widgetContainerId } from "../constants.mjs";
 
-
-function initCloseButton(logWrapper) {
-  const logX          = document.createElement('button')
-  logX.innerText      = 'close';
-  logX.style.position = 'absolute';
-  logX.style.top      = '0';
-  logX.style.left     = '0';
-  logWrapper.appendChild(logX);
-  logX.onclick = () => logWrapper.classList.add('toggle-hidden');
+// Initialize the close button for the widget
+function initCloseButton(wrapper) {
+  const closeButton = document.createElement('button');
+  closeButton.innerText = 'Close';
+  closeButton.style.position = 'absolute';
+  closeButton.style.top = '0';
+  closeButton.style.left = '0';
+  wrapper.appendChild(closeButton);
+  closeButton.onclick = () => wrapper.classList.add('toggle-hidden');
 }
 
+// Initialize the video preview widget
 export function initVideoPreview() {
-  const wrapper = document.createElement('div');
+  const wrapper = createWidgetWrapper();
   document.body.appendChild(wrapper);
-  wrapper.id                    = widgetContainerId;
-  wrapper.style.display         = 'inline-flex';
-  wrapper.style.maxHeight       = '200px';
-  wrapper.style.position        = 'fixed';
-  wrapper.style.zIndex          = '900';
-  wrapper.style.bottom          = '0';
-  wrapper.style.right           = '0';
-  wrapper.style.margin          = `1rem`;
-  wrapper.style.alignItems      = `center`;
-  wrapper.style.backgroundColor = 'rgba(44,230,238,0.43)';
 
-
-  const logWrapper = document.createElement('div');
-  logWrapper.classList.add('toggle-hidden');
-  logWrapper.classList.add('widget-wrapper');
-  logWrapper.style.height    = '200px';
-  logWrapper.style.maxWidth  = '300px';
-  logWrapper.style.overflowY = 'scroll';
-  wrapper.appendChild(logWrapper);
-
-  const log        = document.createElement('ul');
-  log.id           = textYankContainerId;
-  log.style.margin = `0`;
+  // Log Wrapper
+  const logWrapper = createSubWrapper('toggle-hidden', 'scroll', '200px', '300px');
+  const log = createList(textYankContainerId);
   logWrapper.appendChild(log);
-
+  wrapper.appendChild(logWrapper);
   initCloseButton(logWrapper);
 
-  const imageWrapper = document.createElement('div');
-  imageWrapper.classList.add('widget-wrapper');
-  imageWrapper.classList.add('toggle-hidden');
-  imageWrapper.style.height   = '200px';
-  imageWrapper.style.maxWidth = '300px';
-  imageWrapper.style.overflow = 'hidden';
-  wrapper.appendChild(imageWrapper);
-
-  const image = document.createElement('img');
-  image.id    = screenshotImageId;
+  // Image Wrapper
+  const imageWrapper = createSubWrapper('toggle-hidden', 'hidden', '200px', '300px');
+  const image = createImage(screenshotImageId);
   imageWrapper.appendChild(image);
+  wrapper.appendChild(imageWrapper);
   initCloseButton(imageWrapper);
 
-  const canvasWrapper = document.createElement('div');
-  canvasWrapper.classList.add('widget-wrapper');
-  canvasWrapper.classList.add('toggle-hidden');
-  canvasWrapper.style.height   = '200px';
-  canvasWrapper.style.maxWidth = '300px';
-  canvasWrapper.style.overflow = 'hidden';
-  wrapper.appendChild(canvasWrapper);
-
-  const canvas = document.createElement('canvas');
-  canvas.id    = screenshotCanvasId;
+  // Canvas Wrapper
+  const canvasWrapper = createSubWrapper('toggle-hidden', 'hidden', '200px', '300px');
+  const canvas = createCanvas(screenshotCanvasId);
   canvasWrapper.appendChild(canvas);
+  wrapper.appendChild(canvasWrapper);
   initCloseButton(canvasWrapper);
 
-  const videoWrapper = document.createElement('div');
-  videoWrapper.classList.add('widget-wrapper');
-  videoWrapper.classList.add('toggle-hidden');
-  videoWrapper.style.height   = '200px';
-  videoWrapper.style.overflow = 'hidden';
-  wrapper.appendChild(videoWrapper);
-
-  const video        = document.createElement('video');
-  video.id           = screenRecordingVideoId;
-  video.style.height = '200px';
+  // Video Wrapper
+  const videoWrapper = createSubWrapper('toggle-hidden', 'hidden', '200px', '300px');
+  const video = createVideo(screenRecordingVideoId, '200px');
+  const videoNewTab = createLink(screenRecordingVideoLinkId, 'blue', '300px', '200px');
   videoWrapper.appendChild(video);
-
-  const videoNewTab            = document.createElement('a');
-  videoNewTab.id               = screenRecordingVideoLinkId;
-  videoNewTab.style.height     = '200px';
-  videoNewTab.style.width      = '300px';
-  videoNewTab.style.position   = 'absolute';
-  videoNewTab.style.top        = '0';
-  videoNewTab.style.left       = '0';
-  videoNewTab.style.background = 'blue';
   videoWrapper.appendChild(videoNewTab);
-
+  wrapper.appendChild(videoWrapper);
   initCloseButton(videoWrapper);
+}
+
+// Create the main widget wrapper
+function createWidgetWrapper() {
+  const wrapper = document.createElement('div');
+  wrapper.id = widgetContainerId;
+  wrapper.style.display = 'inline-flex';
+  wrapper.style.maxHeight = '200px';
+  wrapper.style.position = 'fixed';
+  wrapper.style.zIndex = '900';
+  wrapper.style.bottom = '0';
+  wrapper.style.right = '0';
+  wrapper.style.margin = '1rem';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.backgroundColor = 'rgba(44, 230, 238, 0.43)';
+  return wrapper;
+}
+
+// Create a sub-wrapper with common properties
+function createSubWrapper(...classes) {
+  const subWrapper = document.createElement('div');
+  subWrapper.classList.add(...classes);
+  subWrapper.style.height = '200px';
+  subWrapper.style.maxWidth = '300px';
+  return subWrapper;
+}
+
+// Create an unordered list (for logs)
+function createList(id) {
+  const list = document.createElement('ul');
+  list.id = id;
+  list.style.margin = '0';
+  return list;
+}
+
+// Create an image element
+function createImage(id) {
+  const image = document.createElement('img');
+  image.id = id;
+  return image;
+}
+
+// Create a canvas element
+function createCanvas(id) {
+  const canvas = document.createElement('canvas');
+  canvas.id = id;
+  return canvas;
+}
+
+// Create a video element
+function createVideo(id, height) {
+  const video = document.createElement('video');
+  video.id = id;
+  video.style.height = height;
+  return video;
+}
+
+// Create a link element for opening the video in a new tab
+function createLink(id, background, width, height) {
+  const link = document.createElement('a');
+  link.id = id;
+  link.style.height = height;
+  link.style.width = width;
+  link.style.position = 'absolute';
+  link.style.top = '0';
+  link.style.left = '0';
+  link.style.background = background;
+  return link;
 }

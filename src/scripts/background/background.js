@@ -1,10 +1,10 @@
-import {recordScreen}              from "./recordScreen";
-import {dispatchContentGrabAction} from "./dispatchContentGrabAction.mjs";
-import {_____log}                  from "../log/log.mjs";
+import { recordScreen } from "./recordScreen";
+import { dispatchContentGrabAction } from "./dispatchContentGrabAction.mjs";
+import { _____log } from "../log/log.mjs";
 
-let color = '#3aa757';
+const color = '#3aa757';
 
-chrome.runtime.onInstalled.addListener((reason) => {
+chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (reason === chrome.runtime.OnInstalledReason.INSTALL) {
     checkCommandShortcuts();
   }
@@ -13,109 +13,101 @@ chrome.runtime.onInstalled.addListener((reason) => {
 });
 
 function contentScriptFunc(name) {
-  console.log('from bg: executing content script ' + name)
+  console.log(`from bg: executing content script ${name}`);
 }
 
 chrome.action.onClicked.addListener((tab) => {
   console.log('here we are');
-  chrome.action.setPopup('popup.html');
+  chrome.action.setPopup({ popup: 'popup.html' });
   chrome.scripting.executeScript({
-                                   target: {tabId: tab.id},
-                                   func:   contentScriptFunc,
-                                   args:   ['action'],
-                                   files:  ['popup.html']
-                                 });
+    target: { tabId: tab.id },
+    func: contentScriptFunc,
+    args: ['action']
+  });
 });
 
 function receiveLogChangeTab(url) {
-  _____log('bg: change', url)
+  _____log('bg: change', url);
 }
 
 function receiveActiveTab(url) {
-  _____log('bg: active', url)
+  _____log('bg: active', url);
 }
 
-chrome.commands.onCommand.addListener(async function (command, tab, sender) {
-  _____log(`bg: execute command `, {arguments});
+chrome.commands.onCommand.addListener(async (command, tab) => {
+  _____log('bg: execute command', { command });
 
-  let ex        = /change_dimension_(\d)/.exec(command);
-  let dimension = (ex || [])[1];
+  const dimensionMatch = /change_dimension_(\d)/.exec(command);
+  const dimension = dimensionMatch ? dimensionMatch[1] : null;
+
   if (dimension) {
-    _____log({arguments});
-    return dispatchContentGrabAction(tab, {text: command}, dimension);
-    return;
+    _____log({ command });
+    return dispatchContentGrabAction(tab, { text: command }, dimension);
   }
+
   switch (command) {
-    case 'queue_yank_text' : {
-      _____log('bg: yanking');
-      return dispatchContentGrabAction(tab, {text: 'dispatch_yank_text'}, false);
-    }
-    case 'record_screen' :
-      _____log('bg: recording screen')
+    case 'queue_yank_text':
+      _____log('bg: yanking text');
+      return dispatchContentGrabAction(tab, { text: 'dispatch_yank_text' });
+    case 'record_screen':
+      _____log('bg: recording screen');
       return recordScreen(tab);
+    default:
+      _____log('bg: unknown command');
   }
 });
-chrome.runtime.onMessageExternal.addListener(function (request, sender, sendResponse) {
-  _____log(`bg: received message from ${sender}: `, {arguments});
-  sendResponse({received: true});
+
+chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
+  _____log(`bg: received external message from ${sender}`, { request });
+  sendResponse({ received: true });
 });
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  _____log('bg: listening to message', {arguments});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  _____log('bg: received message', { message });
+
   switch (message.text) {
-    case 'queue_fill_log': {
-      _____log('bg: dispatching fill log', {arguments});
-      chrome.tabs.sendMessage(
-        sender.tab.id,
-        {text: 'dispatch_fill_log'},
-        () => {
-          _____log('bg: queue ended')
-        }
-      );
-    }
+    case 'queue_fill_log':
+      _____log('bg: dispatching fill log');
+      chrome.tabs.sendMessage(sender.tab.id, { text: 'dispatch_fill_log' }, () => {
+        _____log('bg: queue ended');
+      });
       break;
-    case 'queue_yank_text' : {
+    case 'queue_yank_text':
       _____log('bg: dispatching yank text');
-      dispatchContentGrabAction(sender.tab, {text: 'dispatch_yank_text'}, false);
-    }
+      dispatchContentGrabAction(sender.tab, { text: 'dispatch_yank_text' });
       break;
-    case 'init_app' : {
+    case 'init_app':
       _____log('bg: dispatching init app', sender);
-      chrome.tabs.sendMessage(message.tab.id, {text: 'dispatch_init_app'}, () => {
-        _____log('bg: dispatched init app')
-      })
-    }
+      chrome.tabs.sendMessage(sender.tab.id, { text: 'dispatch_init_app' }, () => {
+        _____log('bg: init app dispatched');
+      });
       break;
-    case 'record_screen' :
+    case 'record_screen':
       _____log('bg: dispatching record screen');
       recordScreen(sender.tab);
       break;
+    default:
+      _____log('bg: unknown message');
   }
-
-});
-chrome.tabs.onUpdated.addListener(async function (tabId, tab) {
-  _____log('bg: tab change', {arguments});
-  chrome.tabs.sendMessage(tabId, {text: 'log_change_tab'}, receiveActiveTab);
-});
-chrome.tabs.onActivated.addListener(async function (tab) {
-  _____log('bg: tab activation', {arguments});
-  chrome.tabs.sendMessage(tab.tabId, {text: 'log_change_tab'}, receiveLogChangeTab);
 });
 
-// Only use this function during the initial install phase. After
-// installation the user may have intentionally unassigned commands.
+chrome.tabs.onUpdated.addListener((tabId, tab) => {
+  _____log('bg: tab updated', { tabId, tab });
+  chrome.tabs.sendMessage(tabId, { text: 'log_change_tab' }, receiveActiveTab);
+});
+
+chrome.tabs.onActivated.addListener((tab) => {
+  _____log('bg: tab activated', { tab });
+  chrome.tabs.sendMessage(tab.tabId, { text: 'log_change_tab' }, receiveLogChangeTab);
+});
+
 function checkCommandShortcuts() {
   chrome.commands.getAll((commands) => {
-    let missingShortcuts = [];
-
-    for (let {name, shortcut} of commands) {
-      if (shortcut === '') {
-        missingShortcuts.push(name);
-      }
-    }
+    const missingShortcuts = commands.filter(({ shortcut }) => !shortcut).map(({ name }) => name);
 
     if (missingShortcuts.length > 0) {
-      // Update the extension UI to inform the user that one or more
-      // commands are currently unassigned.
+      // Inform the user that one or more commands are currently unassigned
+      _____log('bg: missing shortcuts', missingShortcuts);
     }
   });
 }

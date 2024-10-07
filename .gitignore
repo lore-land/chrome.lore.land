@@ -1,3 +1,18 @@
-node_modules
-out
-.idea
+# Ignore node modules
+node_modules/
+
+# Ignore build output directory
+out/
+
+# Ignore IDE settings directory (for JetBrains IDEs like WebStorm, IntelliJ)
+.idea/
+
+# macOS system file
+.DS_Store
+
+# Compiled output
+dist/
+build/
+
+# Logs
+*.log

@@ -1,22 +1,32 @@
 export async function setLocal(key, value) {
-  let res, rej;
-  const promise = new Promise((_y, _n) => { [res, rej] = [_y, _n] });
-  chrome.storage.local.set({[key]: value}, function () {
-    res({[key]: value});
-  })
-  return promise;
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set({ [key]: value }, () => {
+      if (chrome.runtime.lastError) {
+        return reject(chrome.runtime.lastError);
+      }
+      resolve({ [key]: value });
+    });
+  });
 }
 
 export async function getLocal(key) {
-  let res, rej;
-  const promise = new Promise((_y, _n) => { [res, rej] = [_y, _n] });
-  chrome.storage.local.get([key], result => res(result[key]));
-  return promise;
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get([key], (result) => {
+      if (chrome.runtime.lastError) {
+        return reject(chrome.runtime.lastError);
+      }
+      resolve(result[key]);
+    });
+  });
 }
 
 export async function getMultipleLocal(keys) {
-  let res, rej;
-  const promise = new Promise((_y, _n) => { [res, rej] = [_y, _n] });
-  chrome.storage.local.get(keys, result => res(result));
-  return promise;
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(keys, (result) => {
+      if (chrome.runtime.lastError) {
+        return reject(chrome.runtime.lastError);
+      }
+      resolve(result);
+    });
+  });
 }

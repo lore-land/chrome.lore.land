@@ -1,7 +1,7 @@
 {
-  "name": "boon.land",
-  "description": "A companion app ",
-  "version": "1.0",
+  "name": "lore.land",
+  "description": "A companion app for interactive story navigation",
+  "version": "1.1",
   "manifest_version": 4,
   "background": {
     "service_worker": "js/background.js",
@@ -15,32 +15,82 @@
     "scripting"
   ],
   "commands": {
-    "queue_yank_text": {
+    "yank_chapter": {
       "suggested_key": {
-        "default": "Ctrl+E",
-        "mac": "Command+E"
+        "default": "Ctrl+y",
+        "mac": "Command+y"
       },
-      "description": "Yank text"
+      "description": "Yank the current chapter's text"
     },
-    "change_dimension_1": {
+    "navigate_left_section": {
       "suggested_key": {
-        "default": "Ctrl+Shift+1",
-        "mac": "Command+Shift+1"
+        "default": "Ctrl+h",
+        "mac": "Command+h"
       },
-      "description": "Minimize HUD"
+      "description": "Navigate to the previous section"
     },
-    "record_screen": {
+    "navigate_right_section": {
       "suggested_key": {
-        "default": "Ctrl+B",
-        "mac": "Command+B"
+        "default": "Ctrl+l",
+        "mac": "Command+l"
       },
-      "description": "Maximize HUD / Primary Action"
+      "description": "Navigate to the next section"
     },
-    "_execute_action": {
+    "navigate_up_chapter": {
       "suggested_key": {
-        "default": "Ctrl+U",
-        "mac": "Command+U"
-      }
+        "default": "Ctrl+k",
+        "mac": "Command+k"
+      },
+      "description": "Navigate to the previous chapter"
+    },
+    "navigate_down_chapter": {
+      "suggested_key": {
+        "default": "Ctrl+j",
+        "mac": "Command+j"
+      },
+      "description": "Navigate to the next chapter"
+    },
+    "open_character_profile": {
+      "suggested_key": {
+        "default": "Ctrl+o",
+        "mac": "Command+o"
+      },
+      "description": "Open the current character's profile"
+    },
+    "open_timeline": {
+      "suggested_key": {
+        "default": "Ctrl+t",
+        "mac": "Command+t"
+      },
+      "description": "Open the story timeline"
+    },
+    "bookmark_location": {
+      "suggested_key": {
+        "default": "Ctrl+b",
+        "mac": "Command+b"
+      },
+      "description": "Bookmark the current location in the story"
+    },
+    "jump_to_bookmark": {
+      "suggested_key": {
+        "default": "Ctrl+g",
+        "mac": "Command+g"
+      },
+      "description": "Jump to the previously saved bookmark"
+    },
+    "search_story": {
+      "suggested_key": {
+        "default": "/",
+        "mac": "/"
+      },
+      "description": "Search within the story text"
+    },
+    "execute_primary_action": {
+      "suggested_key": {
+        "default": "Ctrl+p",
+        "mac": "Command+p"
+      },
+      "description": "Perform the primary action"
     }
   },
   "content_scripts": [

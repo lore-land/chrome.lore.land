@@ -1,1 +1,1 @@
-export let _____log = console.log;
+export let _____log = console.log.bind(console);

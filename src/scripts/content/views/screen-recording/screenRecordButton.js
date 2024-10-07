@@ -1,28 +1,38 @@
-import {recordButtonId} from "../../constants.mjs";
+import { recordButtonId } from "../../constants.mjs";
 
+// Initialize the recording button and set its behavior
 export function initRecordButton() {
+  // Create the button element
   const element = document.createElement('div');
   element.classList.add('toplevel-button');
-  element.id        = recordButtonId;
-  element.innerHTML = "<span>begin recording</span>";
-  element.onclick   =
-    async function (e) {
-      e.stopPropagation();
+  element.id = recordButtonId;
+  element.innerHTML = "<span>Begin Recording</span>";
 
-      const element                       = this;
-      const {backgroundColor, transition} = element.style;
+  // Handle the button click event
+  element.onclick = async function (e) {
+    e.stopPropagation();
 
-      element.style.backgroundColor = 'white';
-      element.style.transition      = 'background-color .5s';
-      element.style.backgroundColor = backgroundColor;
-      setTimeout(() => {element.style.transition = transition}, 500);
+    const button = this;
+    const originalBackgroundColor = button.style.backgroundColor;
+    const originalTransition = button.style.transition;
 
-      try {
-        await chrome.runtime.sendMessage({text: 'record_screen'})
-      } catch (e) {
-        console.error(e);
-      }
+    // Temporarily change the background color on click
+    button.style.backgroundColor = 'white';
+    button.style.transition = 'background-color 0.5s';
+    button.style.backgroundColor = originalBackgroundColor;
+
+    // Restore the original transition after 500ms
+    setTimeout(() => {
+      button.style.transition = originalTransition;
+    }, 500);
+
+    try {
+      // Send a message to begin screen recording
+      await chrome.runtime.sendMessage({ text: 'record_screen' });
+    } catch (error) {
+      console.error('Failed to start recording:', error);
     }
+  };
 
   return element;
 }

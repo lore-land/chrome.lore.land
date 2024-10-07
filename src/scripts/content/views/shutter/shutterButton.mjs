@@ -14,7 +14,7 @@ export function initShutterWidget() {
       shutter.onclick =
         async function () {
           const {backgroundColor, transition} = element.style;
-          
+
           element.style.backgroundColor = 'red';
 
           await getPhoto(mediaStream, video);
