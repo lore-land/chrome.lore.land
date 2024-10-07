@@ -2,16 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Lore.land Extension</title>
-    <link rel="stylesheet" href="popup.css">
+    <title>BoonLand Orb Extension</title>
+    <script src="popup.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 10px; }
+        .orb { margin-bottom: 10px; }
+        textarea { width: 100%; height: 100px; margin-top: 10px; }
+        button { margin-top: 10px; }
+    </style>
 </head>
 <body>
-<h1>Lore.land</h1>
-<button id="start-recording">Start Recording</button>
-<button id="yank-text">Yank Text</button>
-<button id="clear-log">Clear Log</button>
-<button id="submit-thought">Submit Thought</button>
-<div id="log-container"></div>
-<script src="popup.js"></script>
+<h1>Collected Orbs</h1>
+
+<!-- Display collected orbs here -->
+<div id="orbs-list"></div>
+
+<!-- Textarea for users to add custom orb data or changes to the story -->
+<textarea id="new-orb-input" placeholder="Add new orb or story changes..."></textarea>
+
+<!-- Button to add new custom orb from the textarea -->
+<button id="add-orb">Add New Orb</button>
+
+<!-- Button to clear all collected orbs -->
+<button id="clear-orbs">Clear All Orbs</button>
+
 </body>
 </html>

@@ -1,123 +1,23 @@
 {
-  "name": "Lore.land",
-  "description": "A companion app for interactive story navigation",
-  "version": "1.1",
   "manifest_version": 3,
-  "background": {
-    "service_worker": "js/background.js"
-  },
+  "name": "BoonLand Orb Extension",
+  "version": "1.0",
   "permissions": [
-    "activeTab",
     "tabs",
+    "activeTab",
     "storage",
-    "scripting",
-    "desktopCapture"
+    "scripting"
   ],
-  "commands": {
-    "yank_chapter": {
-      "suggested_key": {
-        "default": "Ctrl+Y",
-        "mac": "Command+Y"
-      },
-      "description": "Yank the current chapter's text"
-    },
-    "navigate_left_section": {
-      "suggested_key": {
-        "default": "Ctrl+H",
-        "mac": "Command+H"
-      },
-      "description": "Navigate to the previous section"
-    },
-    "navigate_right_section": {
-      "suggested_key": {
-        "default": "Ctrl+L",
-        "mac": "Command+L"
-      },
-      "description": "Navigate to the next section"
-    },
-    "navigate_up_chapter": {
-      "suggested_key": {
-        "default": "Ctrl+K",
-        "mac": "Command+K"
-      },
-      "description": "Navigate to the previous chapter"
-    },
-    "navigate_down_chapter": {
-      "suggested_key": {
-        "default": "Ctrl+J",
-        "mac": "Command+J"
-      },
-      "description": "Navigate to the next chapter"
-    },
-    "open_character_profile": {
-      "suggested_key": {
-        "default": "Ctrl+O",
-        "mac": "Command+O"
-      },
-      "description": "Open the current character's profile"
-    },
-    "open_timeline": {
-      "suggested_key": {
-        "default": "Ctrl+T",
-        "mac": "Command+T"
-      },
-      "description": "Open the story timeline"
-    },
-    "bookmark_location": {
-      "suggested_key": {
-        "default": "Ctrl+B",
-        "mac": "Command+B"
-      },
-      "description": "Bookmark the current location in the story"
-    },
-    "jump_to_bookmark": {
-      "suggested_key": {
-        "default": "Ctrl+G",
-        "mac": "Command+G"
-      },
-      "description": "Jump to the previously saved bookmark"
-    },
-    "search_story": {
-      "suggested_key": {
-        "default": "/",
-        "mac": "/"
-      },
-      "description": "Search within the story text"
-    },
-    "execute_primary_action": {
-      "suggested_key": {
-        "default": "Ctrl+P",
-        "mac": "Command+P"
-      },
-      "description": "Perform the primary action"
-    }
+  "background": {
+    "service_worker": "src/js/background.js"
+  },
+  "action": {
+    "default_popup": "src/popup.html"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["js/content.js"]
-    }
-  ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "images/get_started16.png",
-      "32": "images/get_started32.png",
-      "48": "images/get_started48.png",
-      "128": "images/get_started128.png"
-    }
-  },
-  "icons": {
-    "16": "images/get_started16.png",
-    "32": "images/get_started32.png",
-    "48": "images/get_started48.png",
-    "128": "images/get_started128.png"
-  },
-  "options_page": "options.html",
-  "web_accessible_resources": [
-    {
-      "resources": ["js/background.js.map"],
-      "matches": ["<all_urls>"]
+      "matches": ["https://boon.land/*", "https://lore.land/*"],
+      "js": ["src/js/content.js"]
     }
   ]
 }
