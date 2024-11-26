@@ -1,13 +1,43 @@
 {
   "manifest_version": 3,
-  "name": "BoonLand Orb Extension",
+  "name": "orbs.lore.land",
   "version": "1.0",
   "permissions": [
     "tabs",
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "desktopCapture"
   ],
+  "commands": {
+    "yank-chapter": {
+      "suggested_key": {
+        "default": "Ctrl+Y",
+        "mac": "Command+Y"
+      },
+      "description": "Yank Chapter"
+    },
+    "navigate-left-section": {
+      "suggested_key": {
+        "default": "Ctrl+H",
+        "mac": "Command+H"
+      },
+      "description": "Navigate Left Section"
+    },
+    "navigate-right-section": {
+      "suggested_key": {
+        "default": "Ctrl+L",
+        "mac": "Command+L"
+      },
+      "description": "Navigate Right Section"
+    }
+  },
+  "icons": {
+    "16": "src/images/favicon.16.png",
+    "32": "src/images/favicon.32.png",
+    "48": "src/images/favicon.48.png",
+    "128": "src/images/favicon.128.png"
+  },
   "background": {
     "service_worker": "src/js/background.js"
   },
@@ -16,8 +46,20 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://boon.land/*", "https://lore.land/*"],
-      "js": ["src/js/content.js"]
+      "matches": [
+        "https://boon.land/*",
+        "https://bane.land/*",
+        "https://bone.land/*",
+        "https://bonk.land/*",
+        "https://honk.land/*",
+        "https://boof.land/*",
+        "https://lore.land/*",
+        "https://factshift.com/*"
+      ],
+      "js": [
+        "src/js/content.js"
+      ]
     }
-  ]
+  ],
+  "options_page": "src/options.html"
 }

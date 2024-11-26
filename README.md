@@ -50,7 +50,6 @@ This guide is intended for hobbyist developers who wish to explore, modify, or e
   - popup.js
   - options.js
 - css/
-  - reset.css
   - popup.css
   - options.css
 - images/

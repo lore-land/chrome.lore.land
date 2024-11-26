@@ -1,33 +1,251 @@
 /* popup.css - Styles for the popup */
 
+/* CSS Variables for Consistent Theming */
+:root {
+    /* Color Palette */
+    --color-primary: #007bff;
+    --color-primary-hover: #0056b3;
+    --color-secondary: #6c757d;
+    --color-secondary-hover: #5a6268;
+    --color-background: #ffffff;
+    --color-text: #333333;
+    --color-border: #cccccc;
+    --color-hover: #f1f1f1;
+    --color-hover-orb: rgba(190, 190, 190, 0.3);
+
+    /* Font Settings */
+    --font-family: Arial, sans-serif;
+    --font-size-base: 14px;
+    --font-size-heading: 1.2em;
+    --font-weight-bold: bold;
+
+    /* Spacing */
+    --spacing-small: 0.5rem;
+    --spacing-medium: 1rem;
+    --spacing-large: 1.5rem;
+    --spacing-button: 0.625rem 1rem; /* 10px 16px */
+
+    /* Border Radius */
+    --border-radius: 4px;
+    --border-radius-pill: 2rem;
+
+    /* Other */
+    --transition-speed: 0.3s;
+}
+
+/* Global Styles */
 body {
-    font-family: Arial, sans-serif;
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background-color: var(--color-background);
     width: 300px;
-    padding: 10px;
+    padding: var(--spacing-medium);
+    margin: 0;
 }
 
-h1 {
-    font-size: 1.2em;
-    margin-bottom: 10px;
+header, main, footer {
+    margin-bottom: var(--spacing-large);
 }
 
-button {
-    display: block;
-    width: 100%;
-    margin-bottom: 5px;
-    padding: 10px;
+/* Header Styles */
+header h1 {
+    font-size: var(--font-size-heading);
+    margin-bottom: var(--spacing-small);
+}
+
+#mentioned-ordinality {
     font-size: 1em;
-    cursor: pointer;
+    color: var(--color-secondary);
 }
 
-#log-container {
-    margin-top: 10px;
+/* Main Content Styles */
+
+/* Orbs Section */
+#orbs-section {
+    /* Optional: Additional styling for the section */
+}
+
+#orbs-section h2 {
+    font-size: 1em;
+    margin-bottom: var(--spacing-small);
+}
+
+.orb-list {
+    margin-top: var(--spacing-medium);
     max-height: 150px;
     overflow-y: auto;
-    border-top: 1px solid #ccc;
-    padding-top: 10px;
+    border-top: 1px solid var(--color-border);
+    padding: var(--spacing-medium);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-small);
+    /* Adjusted for better orb display */
 }
 
-#log-container p {
-    margin: 5px 0;
+.orb-list .orb {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-medium);
+    margin: var(--spacing-small);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-pill);
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+    background-color: transparent;
 }
+
+.orb-list .orb:hover {
+    background-color: var(--color-hover-orb);
+}
+
+/* Add Orb Section */
+#add-orb-section {
+    /* Optional: Additional styling for the section */
+}
+
+#add-orb-section h2 {
+    font-size: 1em;
+    margin-bottom: var(--spacing-small);
+}
+
+#add-orb-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#add-orb-form textarea {
+    width: 100%;
+    height: 100px;
+    padding: var(--spacing-small);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    resize: vertical;
+    margin-bottom: var(--spacing-small);
+}
+
+#add-orb-form textarea:focus {
+    outline: 2px solid var(--color-primary);
+}
+
+.button-group {
+    display: flex;
+    gap: var(--spacing-small);
+}
+
+.btn {
+    flex: 1;
+    padding: var(--spacing-button);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    transition: background-color var(--transition-speed);
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.btn-secondary {
+    background-color: var(--color-secondary);
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-secondary-hover);
+}
+
+/* Submit Thought Section */
+#submit-thought-section {
+    /* Optional: Additional styling for the section */
+}
+
+#submit-thought-section h2 {
+    font-size: 1em;
+    margin-bottom: var(--spacing-small);
+}
+
+#submit-thought-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#submit-thought-form input[type="text"] {
+    width: 100%;
+    padding: var(--spacing-small);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-small);
+}
+
+#submit-thought-form input[type="text"]:focus {
+    outline: 2px solid var(--color-primary);
+}
+
+#submit-thought-form .btn-primary {
+    width: 100%;
+}
+
+/* Recording Section */
+#recording-section {
+    /* Optional: Additional styling for the section */
+}
+
+#recording-section h2 {
+    font-size: 1em;
+    margin-bottom: var(--spacing-small);
+}
+
+#recording-section .btn-primary {
+    width: 100%;
+}
+
+/* Footer Styles */
+footer p {
+    font-size: 0.875em;
+    color: var(--color-secondary);
+    text-align: center;
+    margin: 0;
+}
+
+/* Visually Hidden (for accessibility) */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap; /* Added line */
+    border: 0;
+}
+
+/* Scrollbar Styling for Orbs List */
+.orb-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.orb-list::-webkit-scrollbar-track {
+    background: var(--color-background);
+}
+
+.orb-list::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: var(--border-radius);
+}
+
+/* Responsive Adjustments (if needed) */
+/* @media (max-width: 400px) {
+    body {
+        width: 100%;
+    }
+} */

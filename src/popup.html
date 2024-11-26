@@ -3,28 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <title>BoonLand Orb Extension</title>
-    <script src="popup.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 10px; }
-        .orb { margin-bottom: 10px; }
-        textarea { width: 100%; height: 100px; margin-top: 10px; }
-        button { margin-top: 10px; }
-    </style>
+    <link rel="stylesheet" href="css/popup.css">
 </head>
 <body>
-<h1>Collected Orbs</h1>
+<header>
+    <h1>Collected Orbs</h1>
+    <div id="mentioned-ordinality" aria-live="polite"></div>
+</header>
 
-<!-- Display collected orbs here -->
-<div id="orbs-list"></div>
+<main>
+    <!-- Section to display collected orbs -->
+    <section id="orbs-section">
+        <h2>Orbs List</h2>
+        <div id="orbs-list" class="orb-list" role="list" aria-label="List of collected orbs">
+            <!-- Orbs will be dynamically inserted here -->
+        </div>
+    </section>
 
-<!-- Textarea for users to add custom orb data or changes to the story -->
-<textarea id="new-orb-input" placeholder="Add new orb or story changes..."></textarea>
+    <!-- Section for adding new orbs or story changes -->
+    <section id="add-orb-section">
+        <h2>Add New Orb or Story Change</h2>
+        <form id="add-orb-form">
+            <label for="new-orb-input" class="visually-hidden">Orb Data Input</label>
+            <textarea id="new-orb-input" name="new-orb-input" placeholder="Add new orb or story changes..." aria-label="New Orb Input"></textarea>
+            <div class="button-group">
+                <button type="submit" id="add-orb" class="btn btn-primary">Add New Orb</button>
+                <button type="button" id="clear-orbs" class="btn btn-secondary">Clear All Orbs</button>
+            </div>
+        </form>
+    </section>
 
-<!-- Button to add new custom orb from the textarea -->
-<button id="add-orb">Add New Orb</button>
+    <!-- Section for submitting thoughts -->
+    <section id="submit-thought-section">
+        <h2>Submit a Thought</h2>
+        <form id="submit-thought-form">
+            <label for="thought-input" class="visually-hidden">Your Thought</label>
+            <input type="text" id="thought-input" name="thought-input" placeholder="Enter your thought..." aria-label="Thought Input">
+            <button type="submit" id="submit-thought" class="btn btn-primary">Submit Thought</button>
+        </form>
+    </section>
 
-<!-- Button to clear all collected orbs -->
-<button id="clear-orbs">Clear All Orbs</button>
+    <!-- Section for screen recording -->
+    <section id="recording-section">
+        <h2>Screen Recording</h2>
+        <button type="button" id="start-recording" class="btn btn-primary">Start Recording</button>
+    </section>
+</main>
 
+<footer>
+    <p>&copy; 2024 spwashi</p>
+</footer>
+
+<script src="js/popup.js"></script>
 </body>
 </html>
