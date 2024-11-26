@@ -1,102 +1,160 @@
 // === src/js/options.js ===
-// src/js/options.js
 
-// Polyfill for browser APIs to ensure cross-browser compatibility
-const runtime = (typeof browser !== 'undefined') ? browser : chrome;
+// RuntimeHandler manages cross-browser runtime interactions
+class RuntimeHandler {
+  constructor() {
+    this.runtime =
+      (typeof browser !== 'undefined' && browser.runtime) ||
+      (typeof chrome !== 'undefined' && chrome.runtime);
+    this.storage =
+      (typeof browser !== 'undefined' && browser.storage) ||
+      (typeof chrome !== 'undefined' && chrome.storage);
+  }
 
-// Utility to promisify runtime storage methods
-const storage = {
-  get: (keys) => {
+  sendMessage(message) {
     return new Promise((resolve, reject) => {
-      runtime.storage.local.get(keys, (result) => {
-        if (runtime.runtime.lastError) {
-          reject(runtime.runtime.lastError);
+      this.runtime.sendMessage(message, (response) => {
+        if (this.runtime.lastError) {
+          reject(this.runtime.lastError);
         } else {
-          resolve(result);
+          resolve(response);
         }
       });
     });
-  },
-  set: (items) => {
+  }
+
+  getStorage(keys) {
     return new Promise((resolve, reject) => {
-      runtime.storage.local.set(items, () => {
-        if (runtime.runtime.lastError) {
-          reject(runtime.runtime.lastError);
+      this.storage.local.get(keys, (data) => {
+        if (this.runtime.lastError) {
+          reject(this.runtime.lastError);
+        } else {
+          resolve(data);
+        }
+      });
+    });
+  }
+
+  setStorage(items) {
+    return new Promise((resolve, reject) => {
+      this.storage.local.set(items, () => {
+        if (this.runtime.lastError) {
+          reject(this.runtime.lastError);
         } else {
           resolve();
         }
       });
     });
   }
-};
-
-// Function to update the thoughts display
-function updateThoughts(thoughts) {
-  const thoughtsContainer = document.getElementById('thoughts-container');
-  thoughtsContainer.innerHTML = '';
-  if (thoughts.length === 0) {
-    thoughtsContainer.textContent = 'No thoughts recorded.';
-    return;
-  }
-  thoughts.forEach((item) => {
-    const p = document.createElement('p');
-    p.textContent = `${new Date(item.timestamp).toLocaleString()}: ${item.thought}`;
-    thoughtsContainer.appendChild(p);
-  });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const autoDownloadCheckbox = document.getElementById('auto-download');
-  const clearThoughtsButton = document.getElementById('clear-thoughts');
-  const enableExtensionCheckbox = document.getElementById('enable-extension'); // Added
+// UIManager handles all UI-related operations
+class UIManager {
+  constructor(storageHandler) {
+    this.storageHandler = storageHandler;
+    this.thoughtsContainer = document.getElementById('thoughts-container');
+    this.autoDownloadCheckbox = document.getElementById('auto-download');
+    this.clearThoughtsButton = document.getElementById('clear-thoughts');
+    this.enableExtensionCheckbox = document.getElementById('enable-extension');
+  }
 
-  // Load initial settings
-  storage.get(['autoDownload', 'thoughts', 'enabled'])
-    .then((data) => {
-      autoDownloadCheckbox.checked = data.autoDownload || false;
-      enableExtensionCheckbox.checked = data.enabled || false; // Ensures checkbox is checked based on storage
-      updateThoughts(data.thoughts || []);
-    })
-    .catch((error) => {
-      console.error("Error loading settings:", error);
+  // Sanitize text to prevent XSS
+  sanitizeText(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Update the thoughts display
+  updateThoughts(thoughts) {
+    this.thoughtsContainer.innerHTML = '';
+    if (thoughts.length === 0) {
+      this.thoughtsContainer.textContent = 'No thoughts recorded.';
+      return;
+    }
+    thoughts.forEach((item) => {
+      const p = document.createElement('p');
+      p.textContent = `${new Date(item.timestamp).toLocaleString()}: ${item.thought}`;
+      this.thoughtsContainer.appendChild(p);
     });
+  }
 
-  // Event listener for auto-download toggle
-  autoDownloadCheckbox.addEventListener('change', () => {
-    storage.set({ autoDownload: autoDownloadCheckbox.checked })
-      .then(() => {
+  // Initialize UI with stored settings
+  async initializeUI() {
+    try {
+      const data = await this.storageHandler.getStorage(['autoDownload', 'thoughts', 'enabled']);
+      this.autoDownloadCheckbox.checked = data.autoDownload || false;
+      this.enableExtensionCheckbox.checked = data.enabled || false;
+      this.updateThoughts(data.thoughts || []);
+    } catch (error) {
+      console.error("Error loading settings:", error);
+    }
+  }
+
+  // Bind event listeners for UI elements
+  bindEventListeners() {
+    // Event listener for auto-download toggle
+    this.autoDownloadCheckbox.addEventListener('change', async () => {
+      try {
+        await this.storageHandler.setStorage({ autoDownload: this.autoDownloadCheckbox.checked });
         // Optionally, notify the user of success
-      })
-      .catch((error) => {
+        console.log('Auto-download setting updated.');
+      } catch (error) {
         alert('Failed to save auto-download setting.');
         console.error("Error saving auto-download setting:", error);
-      });
-  });
+        // Revert the checkbox state in case of error
+        this.autoDownloadCheckbox.checked = !this.autoDownloadCheckbox.checked;
+      }
+    });
 
-  // Event listener for enabling/disabling the extension
-  enableExtensionCheckbox.addEventListener('change', () => {
-    storage.set({ enabled: enableExtensionCheckbox.checked })
-      .then(() => {
+    // Event listener for enabling/disabling the extension
+    this.enableExtensionCheckbox.addEventListener('change', async () => {
+      try {
+        await this.storageHandler.setStorage({ enabled: this.enableExtensionCheckbox.checked });
         // Optionally, notify the user of success
-      })
-      .catch((error) => {
+        console.log('Extension enabled setting updated.');
+      } catch (error) {
         alert('Failed to save extension enabled setting.');
         console.error("Error saving extension enabled setting:", error);
-      });
-  });
+        // Revert the checkbox state in case of error
+        this.enableExtensionCheckbox.checked = !this.enableExtensionCheckbox.checked;
+      }
+    });
 
-  // Event listener for clearing thoughts
-  clearThoughtsButton.addEventListener('click', () => {
-    if (confirm('Are you sure you want to clear all thoughts?')) {
-      storage.set({ thoughts: [] })
-        .then(() => {
-          updateThoughts([]);
+    // Event listener for clearing thoughts
+    this.clearThoughtsButton.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to clear all thoughts?')) {
+        try {
+          await this.storageHandler.setStorage({ thoughts: [] });
+          this.updateThoughts([]);
           // Optionally, notify the user of success
-        })
-        .catch((error) => {
+          alert('All thoughts have been cleared.');
+        } catch (error) {
           alert('Failed to clear thoughts.');
           console.error("Error clearing thoughts:", error);
-        });
-    }
+        }
+      }
+    });
+  }
+}
+
+// OptionsManager orchestrates all components
+class OptionsManager {
+  constructor() {
+    this.runtimeHandler = new RuntimeHandler();
+    this.uiManager = new UIManager(this.runtimeHandler);
+  }
+
+  async initialize() {
+    await this.uiManager.initializeUI();
+    this.uiManager.bindEventListeners();
+  }
+}
+
+// Initialize the options page when the DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  const optionsManager = new OptionsManager();
+  optionsManager.initialize().catch((error) => {
+    console.error('Failed to initialize OptionsManager:', error);
   });
 });

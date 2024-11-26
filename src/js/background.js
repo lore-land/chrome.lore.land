@@ -1,253 +1,368 @@
 // === src/js/background.js ===
 
-// Polyfill for browser APIs to ensure cross-browser compatibility
-const runtime = (typeof browser !== 'undefined') ? browser : chrome;
+// RuntimeHandler manages the browser runtime interactions
+class RuntimeHandler {
+  constructor() {
+    this.runtime = typeof browser !== 'undefined' ? browser : chrome;
+  }
 
-// Utility to promisify runtime storage methods
-const storage = {
-  get: (keys) => {
+  sendMessage(message, callback) {
+    this.runtime.runtime.sendMessage(message, callback);
+  }
+
+  get lastError() {
+    return this.runtime.runtime.lastError;
+  }
+
+  onMessage(listener) {
+    this.runtime.runtime.onMessage.addListener(listener);
+  }
+
+  onInstalled(listener) {
+    this.runtime.runtime.onInstalled.addListener(listener);
+  }
+
+  onCommand(listener) {
+    this.runtime.commands.onCommand.addListener(listener);
+  }
+
+  queryTabs(queryInfo, callback) {
+    this.runtime.tabs.query(queryInfo, callback);
+  }
+
+  sendMessageToTab(tabId, message, callback) {
+    this.runtime.tabs.sendMessage(tabId, message, callback);
+  }
+}
+
+// StorageHandler encapsulates storage operations with Promises
+class StorageHandler {
+  constructor(runtimeHandler) {
+    this.runtime = runtimeHandler.runtime;
+  }
+
+  get(keys) {
     return new Promise((resolve, reject) => {
-      runtime.storage.local.get(keys, (result) => {
-        if (runtime.runtime.lastError) {
-          reject(runtime.runtime.lastError);
+      this.runtime.storage.local.get(keys, (result) => {
+        if (this.runtime.lastError) {
+          reject(this.runtime.lastError);
         } else {
           resolve(result);
         }
       });
     });
-  },
-  set: (items) => {
+  }
+
+  set(items) {
     return new Promise((resolve, reject) => {
-      runtime.storage.local.set(items, () => {
-        if (runtime.runtime.lastError) {
-          reject(runtime.runtime.lastError);
-        } else {
-          resolve();
-        }
-      });
-    });
-  },
-  clear: () => {
-    return new Promise((resolve, reject) => {
-      runtime.storage.local.clear(() => {
-        if (runtime.runtime.lastError) {
-          reject(runtime.runtime.lastError);
+      this.runtime.storage.local.set(items, () => {
+        if (this.runtime.lastError) {
+          reject(this.runtime.lastError);
         } else {
           resolve();
         }
       });
     });
   }
-};
 
-// Constants for storage keys
-const STORAGE_KEYS = {
-  COLLECTED_DATA: 'collectedData', // Renamed for generality
-  COLLECTED_ORBS: 'collectedOrbs',
-  THOUGHTS: 'thoughts',
-  AUTO_DOWNLOAD: 'autoDownload',
-  ENABLED: 'enabled'
-};
-
-// Initialize storage on installation
-const initializeStorage = () => {
-  storage.get([
-    STORAGE_KEYS.COLLECTED_DATA,
-    STORAGE_KEYS.COLLECTED_ORBS,
-    STORAGE_KEYS.THOUGHTS,
-    STORAGE_KEYS.AUTO_DOWNLOAD,
-    STORAGE_KEYS.ENABLED
-  ])
-    .then((currentData) => {
-      // Initialize only if keys are not already set
-      const defaults = {};
-      if (!currentData[STORAGE_KEYS.COLLECTED_DATA]) {
-        defaults[STORAGE_KEYS.COLLECTED_DATA] = [];
-      }
-      if (!currentData[STORAGE_KEYS.COLLECTED_ORBS]) {
-        defaults[STORAGE_KEYS.COLLECTED_ORBS] = [];
-      }
-      if (!currentData[STORAGE_KEYS.THOUGHTS]) {
-        defaults[STORAGE_KEYS.THOUGHTS] = [];
-      }
-      if (currentData[STORAGE_KEYS.AUTO_DOWNLOAD] === undefined) {
-        defaults[STORAGE_KEYS.AUTO_DOWNLOAD] = false;
-      }
-      if (currentData[STORAGE_KEYS.ENABLED] === undefined) {
-        defaults[STORAGE_KEYS.ENABLED] = false;
-      }
-
-      if (Object.keys(defaults).length > 0) {
-        return storage.set(defaults)
-          .then(() => {
-            console.log("Extension installed and storage initialized with defaults.");
-          });
-      } else {
-        console.log("Storage already initialized.");
-        return Promise.resolve();
-      }
-    })
-    .catch((error) => {
-      console.error("Error initializing storage:", error);
+  clear() {
+    return new Promise((resolve, reject) => {
+      this.runtime.storage.local.clear(() => {
+        if (this.runtime.lastError) {
+          reject(this.runtime.lastError);
+        } else {
+          resolve();
+        }
+      });
     });
-};
+  }
+}
 
-// Validate orb data structure
-const isValidOrb = (orb) => {
-  let isValid = orb &&
-    typeof orb.id === "string" &&
-    typeof orb.type === "string" &&
-    typeof orb.state === "string" &&
-    typeof orb.x === "number" &&
-    typeof orb.y === "number" &&
-    typeof orb.valence === "number" &&
-    typeof orb.arousal === "number" &&
-    typeof orb.discreteEmotions === "string";
+// OrbValidator ensures the integrity of orb data structures
+class OrbValidator {
+  static isValidOrb(orb) {
+    const isValid =
+      orb &&
+      typeof orb.id === 'string' &&
+      typeof orb.type === 'string' &&
+      typeof orb.state === 'string' &&
+      typeof orb.x === 'number' &&
+      typeof orb.y === 'number' &&
+      typeof orb.valence === 'number' &&
+      typeof orb.arousal === 'number' &&
+      typeof orb.discreteEmotions === 'string' &&
+      typeof orb.name === 'string';
 
-  if (typeof orb.name !== 'string') {
-    console.log('unknown orb')
+    if (!isValid) {
+      console.warn('Invalid orb data structure:', orb);
+    }
+
+    return isValid;
+  }
+}
+
+// MessageHandler manages incoming messages and their responses
+class MessageHandler {
+  constructor(storageHandler, runtimeHandler) {
+    this.storage = storageHandler;
+    this.runtime = runtimeHandler;
+    this.STORAGE_KEYS = {
+      COLLECTED_DATA: 'collectedData',
+      COLLECTED_ORBS: 'collectedOrbs',
+      THOUGHTS: 'thoughts',
+      AUTO_DOWNLOAD: 'autoDownload',
+      ENABLED: 'enabled',
+    };
   }
 
-  console.log({ orb, isValid });
-  return isValid;
-};
+  handleMessage(request, sender, sendResponse) {
+    console.log('Received message:', request);
 
-// Message handler functions
-const handleMessage = (request, sender, sendResponse) => {
-  console.log("Received message:", request);
+    switch (request.command) {
+      case 'collectData':
+        this.collectData(request.data)
+          .then((status) => sendResponse({ status }))
+          .catch((error) => sendResponse({ status: 'Error collecting data', error: error.message }));
+        return true; // Indicates that sendResponse will be called asynchronously
 
-  switch (request.command) {
-    case "collectData":
-      if (!isValidOrb(request.data)) { // Assuming 'data' contains orb or other custom element data
-        sendResponse({ status: "Invalid data structure" });
+      case 'collectOrb':
+        console.log('here');
+        this.collectOrb(request.data)
+          .then((status) => sendResponse({ status }))
+          .catch((error) => sendResponse({ status: 'Error collecting orb', error: error.message }));
+        return true; // Indicates that sendResponse will be called asynchronously
+
+      case 'openPuzzle':
+        this.openPuzzle(request.puzzleId, sendResponse);
         return false; // No asynchronous response
+
+      case 'getOrbs':
+        this.getOrbs(sendResponse);
+        return true; // Indicates that sendResponse will be called asynchronously
+
+      case 'clearOrbs':
+        this.clearOrbs(sendResponse);
+        return true; // Indicates that sendResponse will be called asynchronously
+
+      // Handle additional commands as needed
+
+      default:
+        sendResponse({ status: 'Unknown command' });
+        return false; // No asynchronous response
+    }
+  }
+
+  collectData(data) {
+    return new Promise((resolve, reject) => {
+      if (!OrbValidator.isValidOrb(data)) {
+        reject(new Error('Invalid data structure'));
+        return;
       }
-      storage.get([STORAGE_KEYS.COLLECTED_DATA])
+
+      this.storage
+        .get([this.STORAGE_KEYS.COLLECTED_DATA])
         .then((existingData) => {
-          const updatedData = existingData[STORAGE_KEYS.COLLECTED_DATA].concat(request.data);
-          return storage.set({ [STORAGE_KEYS.COLLECTED_DATA]: updatedData });
+          const updatedData = existingData[this.STORAGE_KEYS.COLLECTED_DATA].concat(data);
+          return this.storage.set({ [this.STORAGE_KEYS.COLLECTED_DATA]: updatedData });
         })
         .then(() => {
-          console.log(`Data collected:`, request.data);
-          sendResponse({ status: "Data collected successfully" });
+          console.log('Data collected:', data);
+          resolve('Data collected successfully');
         })
         .catch((error) => {
-          console.error("Error collecting data:", error);
-          sendResponse({ status: "Error collecting data", error: error.message });
+          console.error('Error collecting data:', error);
+          reject(error);
         });
-      return true; // Indicates that sendResponse will be called asynchronously
-
-    case "openPuzzle":
-      // Handle opening puzzle modal
-      console.log(`Open Puzzle Command Received for Puzzle ID: ${request.puzzleId}`);
-      // Implement puzzle modal logic here, e.g., communicate with a popup or other UI component
-      // For demonstration, we'll acknowledge the command
-      sendResponse({ status: "Puzzle opened", puzzleId: request.puzzleId });
-      return false; // No asynchronous response
-
-    case "collectOrb":
-      if (!isValidOrb(request.data)) {
-        sendResponse({ status: "Invalid orb data" });
-        return false; // No asynchronous response
-      }
-      storage.get([STORAGE_KEYS.COLLECTED_ORBS])
-        .then((orbsData) => {
-          const updatedOrbs = orbsData[STORAGE_KEYS.COLLECTED_ORBS].concat(request.data);
-          return storage.set({ [STORAGE_KEYS.COLLECTED_ORBS]: updatedOrbs });
-        })
-        .then(() => {
-          console.log(`Orb collected:`, request.data);
-          sendResponse({ status: "Orb collected successfully" });
-        })
-        .catch((error) => {
-          console.error("Error collecting orb:", error);
-          sendResponse({ status: "Error collecting orb", error: error.message });
-        });
-      return true; // Indicates that sendResponse will be called asynchronously
-
-    case "getOrbs":
-      storage.get([STORAGE_KEYS.COLLECTED_ORBS])
-        .then((orbsData) => {
-          sendResponse({ orbs: orbsData[STORAGE_KEYS.COLLECTED_ORBS] });
-        })
-        .catch((error) => {
-          console.error("Error retrieving orbs:", error);
-          sendResponse({ status: "Error retrieving orbs", error: error.message });
-        });
-      return true; // Indicates that sendResponse will be called asynchronously
-
-    case "clearOrbs":
-      storage.set({ [STORAGE_KEYS.COLLECTED_ORBS]: [] })
-        .then(() => {
-          console.log("All orbs have been cleared.");
-          sendResponse({ status: "Orbs cleared successfully" });
-        })
-        .catch((error) => {
-          console.error("Error clearing orbs:", error);
-          sendResponse({ status: "Error clearing orbs", error: error.message });
-        });
-      return true; // Indicates that sendResponse will be called asynchronously
-
-    // Handle additional commands as needed
-
-    default:
-      sendResponse({ status: "Unknown command" });
-      return false; // No asynchronous response
-  }
-};
-
-// Command handler functions (for keyboard commands)
-const handleCommands = (command) => {
-  console.log(`Command "${command}" triggered`);
-  switch (command) {
-    case "toggle-feature":
-      toggleFeature();
-      break;
-    // Add more command cases as needed
-    default:
-      console.warn(`Unrecognized command: ${command}`);
-  }
-};
-
-// Example function to toggle a feature (placeholder)
-const toggleFeature = () => {
-  storage.get([STORAGE_KEYS.ENABLED])
-    .then((currentState) => {
-      const newState = !currentState[STORAGE_KEYS.ENABLED];
-      return storage.set({ [STORAGE_KEYS.ENABLED]: newState })
-        .then(() => {
-          console.log(`Feature toggled to ${newState ? "enabled" : "disabled"}.`);
-          // Optionally, send a message to the content script or popup about the state change
-          // Example:
-          // runtime.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          //   if (tabs[0].id) {
-          //     runtime.tabs.sendMessage(tabs[0].id, { command: "featureToggled", enabled: newState });
-          //   }
-          // });
-        });
-    })
-    .catch((error) => {
-      console.error("Error toggling feature:", error);
     });
-};
+  }
 
-// Register event listeners
-const registerEventListeners = () => {
-  // Listen for messages from content scripts and other extension parts
-  runtime.runtime.onMessage.addListener(handleMessage);
+  collectOrb(data) {
+    return new Promise((resolve, reject) => {
+      if (!OrbValidator.isValidOrb(data)) {
+        reject(new Error('Invalid orb data'));
+        return;
+      }
 
-  // Listen for keyboard commands
-  runtime.commands.onCommand.addListener(handleCommands);
-};
+      this.storage
+        .get([this.STORAGE_KEYS.COLLECTED_ORBS])
+        .then((orbsData) => {
+          const updatedOrbs = orbsData[this.STORAGE_KEYS.COLLECTED_ORBS].concat(data);
+          return this.storage.set({ [this.STORAGE_KEYS.COLLECTED_ORBS]: updatedOrbs });
+        })
+        .then(() => {
+          console.log('Orb collected:', data);
+          resolve('Orb collected successfully');
+        })
+        .catch((error) => {
+          console.error('Error collecting orb:', error);
+          reject(error);
+        });
+    });
+  }
 
-// Initialize the background script
-const init = () => {
-  // Initialize storage when the extension is installed or updated
-  runtime.runtime.onInstalled.addListener(initializeStorage);
+  getOrbs(sendResponse) {
+    this.storage
+      .get([this.STORAGE_KEYS.COLLECTED_ORBS])
+      .then((orbsData) => {
+        sendResponse({ orbs: orbsData[this.STORAGE_KEYS.COLLECTED_ORBS] });
+      })
+      .catch((error) => {
+        console.error('Error retrieving orbs:', error);
+        sendResponse({ status: 'Error retrieving orbs', error: error.message });
+      });
+  }
 
-  // Register event listeners
-  registerEventListeners();
-};
+  clearOrbs(sendResponse) {
+    this.storage
+      .set({ [this.STORAGE_KEYS.COLLECTED_ORBS]: [] })
+      .then(() => {
+        console.log('All orbs have been cleared.');
+        sendResponse({ status: 'Orbs cleared successfully' });
+      })
+      .catch((error) => {
+        console.error('Error clearing orbs:', error);
+        sendResponse({ status: 'Error clearing orbs', error: error.message });
+      });
+  }
 
-// Execute initialization
-init();
+  openPuzzle(puzzleId, sendResponse) {
+    console.log(`Open Puzzle Command Received for Puzzle ID: ${puzzleId}`);
+    // Implement puzzle modal logic here, e.g., communicate with a popup or other UI component
+    // For demonstration, we'll acknowledge the command
+    sendResponse({ status: 'Puzzle opened', puzzleId });
+    return false; // No asynchronous response
+  }
+}
+
+// CommandHandler manages keyboard commands and their actions
+class CommandHandler {
+  constructor(storageHandler, runtimeHandler) {
+    this.storage = storageHandler;
+    this.runtime = runtimeHandler;
+  }
+
+  handleCommand(command) {
+    console.log(`Command "${command}" triggered`);
+
+    switch (command) {
+      case 'toggle-feature':
+        this.toggleFeature();
+        break;
+      // Add more command cases as needed
+      default:
+        console.warn(`Unrecognized command: ${command}`);
+    }
+  }
+
+  toggleFeature() {
+    this.storage
+      .get(['enabled'])
+      .then((currentState) => {
+        const newState = !currentState.enabled;
+        return this.storage.set({ enabled: newState }).then(() => newState);
+      })
+      .then((newState) => {
+        console.log(`Feature toggled to ${newState ? 'enabled' : 'disabled'}.`);
+
+        // Optionally, notify active tabs about the state change
+        this.runtime.queryTabs({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.id) {
+            this.runtime.sendMessageToTab(tabs[0].id, { command: 'featureToggled', enabled: newState });
+          }
+        });
+      })
+      .catch((error) => {
+        console.error('Error toggling feature:', error);
+      });
+  }
+}
+
+// FeatureToggle provides additional feature management (if needed)
+class FeatureToggle {
+  constructor(storageHandler) {
+    this.storage = storageHandler;
+    // Additional initialization if necessary
+  }
+
+  // Implement feature toggle methods as needed
+}
+
+// BackgroundManager orchestrates all background script functionalities
+class BackgroundManager {
+  constructor() {
+    this.runtimeHandler = new RuntimeHandler();
+    this.storageHandler = new StorageHandler(this.runtimeHandler);
+    this.messageHandler = new MessageHandler(this.storageHandler, this.runtimeHandler);
+    this.commandHandler = new CommandHandler(this.storageHandler, this.runtimeHandler);
+    this.featureToggle = new FeatureToggle(this.storageHandler);
+    this.STORAGE_KEYS = this.messageHandler.STORAGE_KEYS;
+
+    this.initialize();
+  }
+
+  initialize() {
+    this.initializeStorage()
+      .then(() => {
+        this.registerEventListeners();
+      })
+      .catch((error) => {
+        console.error('Initialization failed:', error);
+      });
+  }
+
+  initializeStorage() {
+    return this.storageHandler
+      .get([
+        this.STORAGE_KEYS.COLLECTED_DATA,
+        this.STORAGE_KEYS.COLLECTED_ORBS,
+        this.STORAGE_KEYS.THOUGHTS,
+        this.STORAGE_KEYS.AUTO_DOWNLOAD,
+        this.STORAGE_KEYS.ENABLED,
+      ])
+      .then((currentData) => {
+        const defaults = {};
+        if (!currentData[this.STORAGE_KEYS.COLLECTED_DATA]) {
+          defaults[this.STORAGE_KEYS.COLLECTED_DATA] = [];
+        }
+        if (!currentData[this.STORAGE_KEYS.COLLECTED_ORBS]) {
+          defaults[this.STORAGE_KEYS.COLLECTED_ORBS] = [];
+        }
+        if (!currentData[this.STORAGE_KEYS.THOUGHTS]) {
+          defaults[this.STORAGE_KEYS.THOUGHTS] = [];
+        }
+        if (currentData[this.STORAGE_KEYS.AUTO_DOWNLOAD] === undefined) {
+          defaults[this.STORAGE_KEYS.AUTO_DOWNLOAD] = false;
+        }
+        if (currentData[this.STORAGE_KEYS.ENABLED] === undefined) {
+          defaults[this.STORAGE_KEYS.ENABLED] = false;
+        }
+
+        if (Object.keys(defaults).length > 0) {
+          return this.storageHandler.set(defaults).then(() => {
+            console.log('Extension installed and storage initialized with defaults.');
+          });
+        } else {
+          console.log('Storage already initialized.');
+          return Promise.resolve();
+        }
+      })
+      .catch((error) => {
+        console.error('Error initializing storage:', error);
+      });
+  }
+
+  registerEventListeners() {
+    // Listen for messages from content scripts and other extension parts
+    this.runtimeHandler.onMessage(this.messageHandler.handleMessage.bind(this.messageHandler));
+
+    // Listen for keyboard commands
+    this.runtimeHandler.onCommand(this.commandHandler.handleCommand.bind(this.commandHandler));
+
+    // Additional event listeners can be registered here
+  }
+}
+
+// Initialize the BackgroundManager when the script is loaded
+(function () {
+  const backgroundManager = new BackgroundManager();
+})();

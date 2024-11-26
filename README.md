@@ -78,7 +78,7 @@ You can obtain the extension's source code by:
 - **Cloning the Repository**:
 
   ```bash
-  git clone https://github.com/yourusername/lore-land-extension.git
+  git clone https://github.com/lore-land/chrome.lore.land.git
   ```
 
 - **Downloading as ZIP**:
@@ -102,7 +102,7 @@ Ensure that the folder structure matches the one outlined above.
 
 ### 5. Verify the Extension is Loaded
 
-- You should now see **Lore.land** listed among your extensions.
+- You should now see **orbs.lore.land** listed among your extensions.
 - If there are any errors, Chrome will display them. Ensure that all file paths in `manifest.json` are correct.
 
 ---
